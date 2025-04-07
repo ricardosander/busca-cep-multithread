@@ -25,13 +25,10 @@ func main()	{
 	select {
 	case bCep := <-chBrasilCep:
 		ProcessResult(bCep)
-		CloseChannels(chBrasilCep, chViaCep)
 	case vCep := <-chViaCep:
 		ProcessResult(vCep)
-		CloseChannels(chBrasilCep, chViaCep)
 	case <-time.After(1 * time.Second):
 		fmt.Println("Tempo de espera excedido. Nenhum resultado encontrado.")
-		CloseChannels(chBrasilCep, chViaCep)
 	}
 }
 
@@ -45,7 +42,7 @@ func GetInput() (*string, error) {
 func ExecuteViaCep(ch chan *Cep, input string) {
 	cep, err := BuscaViaCep(input)
 	if err != nil {
-		close(ch)
+		fmt.Println("Erro ao buscar CEP no ViaCEP:", err)
 		return
 	}
 	ch <- cep
@@ -54,7 +51,7 @@ func ExecuteViaCep(ch chan *Cep, input string) {
 func ExecuteBrasilCep(ch chan *Cep, input string) {
 	cep, err := BuscaBrasilCep(input)
 	if err != nil {
-		close(ch)
+		fmt.Println("Erro ao buscar CEP no Brasil API:", err)
 		return
 	}
 	ch <- cep
@@ -65,9 +62,4 @@ func ProcessResult(cep *Cep) {
 		fmt.Println("\nResultado:")
 		fmt.Println(*cep.Print())
 	}
-}
-
-func CloseChannels(ch1, ch2 chan *Cep) {
-	close(ch1)
-	close(ch2)
 }
